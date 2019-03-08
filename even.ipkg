@@ -1,0 +1,5 @@
+package idris-even
+
+modules = Even.Nat
+        , Even.Vect
+
