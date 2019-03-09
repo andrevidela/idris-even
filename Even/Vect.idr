@@ -2,7 +2,7 @@
 module EvenVect
 
 import Data.Vect
-import NatProofs
+import Even.NatProofs
 
 %default total 
 
@@ -43,14 +43,15 @@ toEvenVect xs {n = Z} = []
 toEvenVect xs {n = (S k)} {a} with (evenVectSuccRight k a xs)
   toEvenVect xs {n = (S k)} | (x :: (y :: ys)) = (x, y) :: toEvenVect ys
 
-||| Given a list of pair construct a vector of even length
-export fromPairList : (l : List (a, a)) -> EvenVect (length l) a
-fromPairList ls with (fromList ls)
-  | vs = unpair vs
+||| Using a function that splits an `a` into two `b`s map a Vect n a into an EvenVect b of length n
+export mapEven : (a -> (b, b)) -> Vect n a -> EvenVect n b
+mapEven f [] = []
+mapEven f (x :: xs) = f x :: mapEven f xs
 
-||| Given a list of pairs construct a vector twice the length of the list
-export pairListToVect : (l : List (a, a)) -> Vect (length l + length l) a
-pairListToVect l = extract $ fromPairList l
+||| Using a function that splits an `a` into two `b`s map a Vect n a into a Vect twice its length
+||| containing `b`s
+export mapEvenVect : (a -> (b, b)) -> Vect n a -> Vect (n + n) b
+mapEvenVect f xs = extract $ mapEven f xs
 
 ||| Map a vector of even length to a vector, combining elements two by two
 export mapPairs : (a -> a -> b) -> EvenVect n a -> Vect n b
