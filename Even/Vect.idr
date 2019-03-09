@@ -12,6 +12,46 @@ public export data EvenVect : Nat -> Type -> Type where
   Nil : EvenVect Z a
   (::) : (a, a) -> EvenVect n a -> EvenVect (S n) a
 
+replicate : (len : Nat) -> a -> EvenVect len a
+replicate Z x = []
+replicate (S k) x = (x, x) :: replicate k x
+
+Functor (EvenVect n) where
+  map func [] = []
+  map func ((a, b) :: y) = (func a, func b) :: map func y
+
+Applicative (EvenVect n) where
+  pure x {n} = replicate n x
+  [] <*> [] = []
+  ((f, g) :: z) <*> ((a, b) :: w) = (f a, g b) :: (z <*> w)
+
+Foldable (EvenVect n) where
+  foldr func init [] = init
+  foldr func init ((a, b) :: ys) = let f = func a init 
+                                       s = func b f in
+                                       foldr func s ys
+  foldl func init [] = init
+  foldl func init ((a, b) :: ys) = let end = foldl func init ys
+                                       prev = func end b in
+                                       func prev a
+
+wrapPair : Applicative f => f a -> f a -> f (a, a)
+wrapPair x y = (pure MkPair) <*> x <*> y
+
+Traversable (EvenVect n) where
+  traverse f [] = [| [] |]
+  traverse f ((x, y) :: xs) = [| wrapPair (f x) (f y) :: traverse f xs |]
+
+
+Eq a => Eq (EvenVect n a) where
+  [] == [] = True
+  (x :: xs) == (y :: ys) = x == y && (xs == ys)
+
+Ord a => Ord (EvenVect n a) where
+  compare [] [] = EQ
+  compare (x :: xs) (y :: ys) = compare x y `thenCompare` compare xs ys
+
+
 congVect : a = b -> Vect a c = Vect b c
 congVect Refl = Refl
 
