@@ -12,45 +12,35 @@ A library to deal with even `Nat` and `Vect` of even length
 
 ## How to use
 
-Currently the API is mostly useful for `pairup` `unpair` `mapPairs` `deuxMapVect` and `toEvenVect`.
+We define a set of function that operate on `Vect` and `EvenVect`, allowing to convert from
+one to the other and allowing the API of `EventVect` to be compatible with `Vect` of size
+`n + n.
 
-They are specialised in mapping elements two-by-two somtimes into a vector half the size of the 
-original vector
+### EvenVect
 
-### pairup
+`EvenVect` is an alias for `Vect n (a, a)`, it's a vector that contains `n + n` elements.
+It packs elements in pairs to encode the fact that the number of elements is a multiple of
+2.
 
-```
-||| Takes an EvenVect and return a vect of pairs, preserves order
-export pairup : EvenVect n a -> Vect n (a, a)
-```
-
-This takes an `EvenVect` and turns it into a `Vect` while keeping the order and the structure of
-`EvenVect`. For example
+### extract
 
 ```
-ab : EvenVect 1 Nat
-ab = [(1, 2)]
-
-> pairup ab
-> [(1,2)]: Vect 1 (Nat, Nat) 
+||| Extracts the elements of an EvenVect into a Vect twice its length preserving order
+extract : EvenVect n e -> Vect (n + n) e
 ```
 
-### unpair
+Given a vector of even length, converts into a vector of size `n + n` where `n` is half the
+size of the vector. The order is preseved as demonstrated by the following example:
 
 ```
-||| Given a vector of pairs, return a vector of even length, preseves order
-export unpair : Vect n (a, a) -> EvenVect n a
+v : EvenVect 2 Nat
+v = [(1,2) , (3,4)]
+
+> extract v
+> [1, 2, 3, 4] : Vect 4 Nat
 ```
 
-This takes a Vector of identical pairs and length n and return a vector of even length with the same content
 
-```
-ab : Vect 1 (Nat, Nat)
-ab = [(1,2)]
-
-> unpair ab
-> [(1, 2)] : EvenVect 1 Nat
-```
 
 ### toEvenVect
 
@@ -70,18 +60,47 @@ ab = [1,2,3,4]
 > [(1, 2), (3, 4)] : EvenVect 2 Nat
 ```
 
+### mapSplit
 
-### deuxMapVect
+```
+||| Using a function that splits an `a` into two `b`s, map a Vect n into a vector of even length
+mapSplit : (a -> (b, b)) -> Vect n a -> EvenVect n b
+```
+
+Using a function that splits one `a` into two `b`s, creates an `EvenVect` of `b` values.
+
+### mapJoin
+
+```
+||| Map a vector of even length to a vector, combining elements two by two
+mapJoin : (a -> a -> b) -> EvenVect n a -> Vect n b
+```
+
+Using a function that combines two `a`s into a single `b`, create a `Vect` of length half the
+size of the original vector containing values of `b`.
+
+### mapSplitVect
+
+```
+||| Using a function that splits an `a` into two `b`s map a Vect n a into a Vect twice its length
+||| containing `b`s
+mapSplitVect : (a -> (b, b)) -> Vect n a -> Vect (n + n) b
+```
+
+Using a function that splits one `a` into two `b`s, this function takes a `Vect` of arbitrary
+length and creates a `Vect` twice its size using the newly created `b` values.
+
+### mapJoinVect
 
 ```
 ||| Given a vector of length n + n, map each element two by two 
 ||| to a vector of length n
-export deuxMapVect : (a -> a -> b) -> Vect (n + n) a -> Vect n b
+export mapJoinVect : (a -> a -> b) -> Vect (n + n) a -> Vect n b
 ```
 
 Using a function that combines two `a` into a `b`, this will reduce a vector of even length
-into a vector of length twice smaller comprised of `b`. The order is preseved, the following
-schema should help get an intuition as to what is happening.
+into a vector of length twice smaller comprised of `b` values. The order is preseved, the 
+following schema should help get an intuition as to what is happening.
 
 ```
 1 :: 2 :: 3 :: 4      < Our vector of even length n
@@ -99,7 +118,7 @@ As a concrete example
 ab : Vect (2 + 2) Nat
 ab = [1,2,3,4]
 
-> deuxMapVect (+) ab
+> mapJoinVect (+) ab
 > [3, 7] : Vect 2 Nat
 ```
 

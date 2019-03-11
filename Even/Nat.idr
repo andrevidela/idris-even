@@ -2,6 +2,7 @@ module EvenNats
 
 import NatProofs
 %default total
+%access public export
 
 data EvenNat : Nat -> Type where   
   ZEven : EvenNat Z
